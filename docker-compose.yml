@@ -1,0 +1,36 @@
+version: "2"
+
+services:
+  app:
+    container_name: app
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/sources/
+    depends_on:
+      - redis
+    links:
+      - redis
+
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  celery_worker:
+    container_name: celery_worker
+    restart: always
+    build:
+      context: .
+    command: ["celery", "-A", "mailganer", "worker", "-l", "info"]
+    links:
+      - redis
+    depends_on:
+      - app
+    volumes:
+      - .:/sources/
